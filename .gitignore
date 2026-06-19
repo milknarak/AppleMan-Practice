@@ -1,0 +1,28 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build output
+dist/
+backend/dist/
+frontend/dist/
+out-tsc/
+.angular/
+
+# Editor / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# Logs / env
+*.log
+npm-debug.log*
+.env
+.env.local
+.env.*.local
+
+# Test
+coverage/

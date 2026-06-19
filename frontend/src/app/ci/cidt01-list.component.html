@@ -1,0 +1,178 @@
+<!-- KPI cards -->
+@if (summary(); as s) {
+  <div class="kpi-grid">
+    <app-kpi-card label="รอนัดหมาย" [value]="s.waitingAppointment" icon="fa-solid fa-clock" color="amber" />
+    <app-kpi-card label="นัดหมายวันนี้" [value]="s.bookedToday" icon="fa-solid fa-calendar-day" color="blue" />
+    <app-kpi-card label="ยกเลิก" [value]="s.cancelled" icon="fa-solid fa-ban" color="rose" />
+    <app-kpi-card label="ทั้งหมด" [value]="s.total" icon="fa-solid fa-database" color="violet" />
+  </div>
+}
+
+<!-- Filter -->
+<div class="card-c" style="margin-bottom: 1.25rem;">
+  <div class="card-c-body">
+    <div class="row g-3">
+      <div class="col-md-3">
+        <label class="form-label-c">วันที่ยื่นคำขอ (จาก)</label>
+        <input type="date" class="form-control-c" [(ngModel)]="query.requestDateFrom" />
+      </div>
+      <div class="col-md-3">
+        <label class="form-label-c">วันที่ยื่นคำขอ (ถึง)</label>
+        <input type="date" class="form-control-c" [(ngModel)]="query.requestDateTo" />
+      </div>
+      <div class="col-md-3">
+        <label class="form-label-c">ยี่ห้อรถ</label>
+        <select class="form-select-c" [(ngModel)]="query.carBrand">
+          <option [ngValue]="null">ทั้งหมด</option>
+          @for (b of master()?.carBrands ?? []; track b.value) {
+            <option [value]="b.value">{{ b.label }}</option>
+          }
+        </select>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label-c">สถานะนัดหมาย</label>
+        <select class="form-select-c" [(ngModel)]="query.appointmentStatus">
+          <option [ngValue]="null">ทั้งหมด</option>
+          @for (s of master()?.appointmentStatus ?? []; track s.value) {
+            <option [value]="s.value">{{ s.label }}</option>
+          }
+        </select>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label-c">ค้นหา (เลขคำขอ / ชื่อลูกค้า / ทะเบียน)</label>
+        <input class="form-control-c" [(ngModel)]="query.keyword" placeholder="พิมพ์คำค้น..." />
+      </div>
+      <div class="col-md-6 d-flex align-items-end gap-2">
+        <button class="btn-primary-c" (click)="search(true)">
+          <i class="fa-solid fa-search"></i> ค้นหา
+        </button>
+        <button class="btn-secondary-c" (click)="clear()">
+          <i class="fa-solid fa-eraser"></i> ล้าง
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Result table -->
+<div class="table-wrap">
+  <table class="table-c">
+    <thead>
+      <tr>
+        <th>เลขคำขอ</th>
+        <th>วันที่ยื่น</th>
+        <th>ลูกค้า</th>
+        <th>รถ</th>
+        <th>ทะเบียน</th>
+        <th>สถานะ</th>
+        <th style="width:120px;"></th>
+      </tr>
+    </thead>
+    <tbody>
+      @if (loading()) {
+        <tr><td colspan="7" class="text-center p-3 text-muted">กำลังโหลด...</td></tr>
+      } @else if ((result()?.items?.length ?? 0) === 0) {
+        <tr><td colspan="7" class="text-center p-3 text-muted">ไม่พบข้อมูล</td></tr>
+      } @else {
+        @for (row of result()!.items; track row.requestId) {
+          <tr (click)="select(row)" [class.selected]="selected()?.requestId === row.requestId">
+            <td>{{ row.requestFormNo }}</td>
+            <td>{{ row.requestDate | thaidate }}</td>
+            <td>
+              <div>{{ row.customerName }}</div>
+              <small class="text-muted">{{ row.customerMobile }}</small>
+            </td>
+            <td>{{ row.carBrand }} {{ row.carModel }} ({{ row.carYear }})</td>
+            <td>{{ row.licensePlate }}</td>
+            <td><app-status-badge kind="appointment" [value]="row.appointmentStatus" /></td>
+            <td>
+              @if (row.appointmentStatus === 'P') {
+                <button class="btn-primary-c" style="padding:.3rem .65rem; font-size:.82rem;"
+                        (click)="openBooking(row, $event)">
+                  <i class="fa-solid fa-calendar-plus"></i> นัดหมาย
+                </button>
+              }
+            </td>
+          </tr>
+        }
+      }
+    </tbody>
+  </table>
+  @if (result(); as r) {
+    <div class="pagination-c">
+      <span style="margin-right:auto; color:#64748b; font-size:.85rem;">
+        ทั้งหมด {{ r.total }} รายการ
+      </span>
+      <button (click)="goPage(page - 1)" [disabled]="page <= 1">&laquo;</button>
+      <button class="active">{{ page }} / {{ totalPages() }}</button>
+      <button (click)="goPage(page + 1)" [disabled]="page >= totalPages()">&raquo;</button>
+    </div>
+  }
+</div>
+
+<!-- Detail side panel -->
+@if (selected(); as s) {
+  <div class="card-c" style="margin-top: 1.25rem;">
+    <div class="card-c-header">รายละเอียดคำขอ {{ s.requestFormNo }}</div>
+    <div class="card-c-body">
+      <div class="row g-3">
+        <div class="col-md-4"><strong>ลูกค้า:</strong> {{ s.customerName }}</div>
+        <div class="col-md-4"><strong>เบอร์โทร:</strong> {{ s.customerMobile }}</div>
+        <div class="col-md-4"><strong>ดีลเลอร์:</strong> {{ s.dealerName }}</div>
+        <div class="col-md-4"><strong>รถ:</strong> {{ s.carBrand }} {{ s.carModel }} ({{ s.carYear }})</div>
+        <div class="col-md-4"><strong>สี:</strong> {{ s.carColor }}</div>
+        <div class="col-md-4"><strong>เลขไมล์:</strong> {{ s.mileage | number }}</div>
+        <div class="col-md-4"><strong>ทะเบียน:</strong> {{ s.licensePlate }} ({{ s.licenseProvince }})</div>
+        <div class="col-md-4"><strong>วันที่ยื่นคำขอ:</strong> {{ s.requestDate | thaidate }}</div>
+        <div class="col-md-4"><strong>สถานะ:</strong> <app-status-badge kind="appointment" [value]="s.appointmentStatus" /></div>
+        @if (s.remark) {
+          <div class="col-12"><strong>หมายเหตุ:</strong> {{ s.remark }}</div>
+        }
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Booking modal -->
+@if (bookingOpen()) {
+  <div class="modal-backdrop-c" (click)="closeBooking()">
+    <div class="modal-card" (click)="$event.stopPropagation()">
+      <div class="modal-header-c">
+        <span>นัดหมายตรวจสภาพ — {{ bookingTarget()?.requestFormNo }}</span>
+        <button class="btn-secondary-c" (click)="closeBooking()" style="padding:.2rem .5rem;">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <div class="modal-body-c">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label-c">วันที่นัดหมาย *</label>
+            <input type="date" class="form-control-c" [(ngModel)]="bookingDate" />
+          </div>
+          <div class="col-md-6">
+            <label class="form-label-c">Hub *</label>
+            <select class="form-select-c" [(ngModel)]="bookingHub">
+              <option value="">เลือก Hub</option>
+              @for (h of master()?.hubs ?? []; track h.value) {
+                <option [value]="h.value">{{ h.label }}</option>
+              }
+            </select>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label-c">ช่วงเวลา *</label>
+            <select class="form-select-c" [(ngModel)]="bookingSlot">
+              <option value="">เลือกช่วงเวลา</option>
+              @for (s of master()?.slots ?? []; track s.value) {
+                <option [value]="s.value">{{ s.label }}</option>
+              }
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer-c">
+        <button class="btn-secondary-c" (click)="closeBooking()">ยกเลิก</button>
+        <button class="btn-primary-c" (click)="confirmBooking()">ยืนยันนัดหมาย</button>
+      </div>
+    </div>
+  </div>
+}

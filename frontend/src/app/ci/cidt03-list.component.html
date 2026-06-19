@@ -1,0 +1,188 @@
+@if (summary(); as s) {
+  <div class="kpi-grid">
+    <app-kpi-card label="ผ่าน" [value]="s.passed" icon="fa-solid fa-circle-check" color="green" />
+    <app-kpi-card label="ไม่ผ่าน" [value]="s.failed" icon="fa-solid fa-circle-xmark" color="rose" />
+    <app-kpi-card label="รอสรุปผล" [value]="s.pendingResult" icon="fa-solid fa-hourglass-half" color="amber" />
+    <app-kpi-card label="ทั้งหมด" [value]="s.total" icon="fa-solid fa-list-check" color="violet" />
+  </div>
+}
+
+<div class="card-c" style="margin-bottom: 1.25rem;">
+  <div class="card-c-body">
+    <div class="row g-3">
+      <div class="col-md-3">
+        <label class="form-label-c">วันที่ตรวจ (จาก)</label>
+        <input type="date" class="form-control-c" [(ngModel)]="query.inspectionDateFrom" />
+      </div>
+      <div class="col-md-3">
+        <label class="form-label-c">วันที่ตรวจ (ถึง)</label>
+        <input type="date" class="form-control-c" [(ngModel)]="query.inspectionDateTo" />
+      </div>
+      <div class="col-md-3">
+        <label class="form-label-c">ผู้ตรวจ</label>
+        <select class="form-select-c" [(ngModel)]="query.inspector">
+          <option [ngValue]="null">ทั้งหมด</option>
+          @for (i of master()?.inspectors ?? []; track i.value) {
+            <option [value]="i.value">{{ i.label }}</option>
+          }
+        </select>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label-c">ผลตรวจ</label>
+        <select class="form-select-c" [(ngModel)]="query.inspectionResult">
+          <option [ngValue]="null">ทั้งหมด</option>
+          @for (r of master()?.inspectionResult ?? []; track r.value) {
+            <option [value]="r.value">{{ r.label }}</option>
+          }
+        </select>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label-c">ค้นหา (เลขคำขอ / ชื่อลูกค้า / ทะเบียน)</label>
+        <input class="form-control-c" [(ngModel)]="query.keyword" placeholder="พิมพ์คำค้น..." />
+      </div>
+      <div class="col-md-6 d-flex align-items-end gap-2">
+        <button class="btn-primary-c" (click)="search(true)">
+          <i class="fa-solid fa-search"></i> ค้นหา
+        </button>
+        <button class="btn-secondary-c" (click)="clear()">
+          <i class="fa-solid fa-eraser"></i> ล้าง
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="table-wrap">
+  <table class="table-c">
+    <thead>
+      <tr>
+        <th>เลขคำขอ</th>
+        <th>วันที่ตรวจ</th>
+        <th>ลูกค้า</th>
+        <th>รถ / ทะเบียน</th>
+        <th>ผู้ตรวจ</th>
+        <th>ผ่าน/ไม่ผ่าน</th>
+        <th>ผลตรวจ</th>
+        <th style="width:120px;"></th>
+      </tr>
+    </thead>
+    <tbody>
+      @if (loading()) {
+        <tr><td colspan="8" class="text-center p-3 text-muted">กำลังโหลด...</td></tr>
+      } @else if ((result()?.items?.length ?? 0) === 0) {
+        <tr><td colspan="8" class="text-center p-3 text-muted">ไม่พบข้อมูล</td></tr>
+      } @else {
+        @for (row of result()!.items; track row.requestId) {
+          <tr (click)="select(row)" [class.selected]="selected()?.requestId === row.requestId">
+            <td>{{ row.requestFormNo }}</td>
+            <td>{{ row.inspectionDate | thaidate }}</td>
+            <td>
+              <div>{{ row.customerName }}</div>
+              <small class="text-muted">{{ row.customerMobile }}</small>
+            </td>
+            <td>
+              <div>{{ row.carBrand }} {{ row.carModel }}</div>
+              <small class="text-muted">{{ row.licensePlate }} ({{ row.licenseProvince }})</small>
+            </td>
+            <td>{{ row.inspectorName ?? '-' }}</td>
+            <td>
+              <span class="text-success fw-bold">{{ row.passedItems ?? 0 }}</span>
+              /
+              <span class="text-danger fw-bold">{{ row.failedItems ?? 0 }}</span>
+            </td>
+            <td><app-status-badge kind="result" [value]="row.inspectionResult" /></td>
+            <td>
+              @if (row.inspectionResult === 'P') {
+                <button class="btn-primary-c" style="padding:.3rem .65rem; font-size:.82rem;"
+                        (click)="openResult(row, $event)">
+                  <i class="fa-solid fa-pen-to-square"></i> บันทึกผล
+                </button>
+              }
+            </td>
+          </tr>
+        }
+      }
+    </tbody>
+  </table>
+  @if (result(); as r) {
+    <div class="pagination-c">
+      <span style="margin-right:auto; color:#64748b; font-size:.85rem;">
+        ทั้งหมด {{ r.total }} รายการ
+      </span>
+      <button (click)="goPage(page - 1)" [disabled]="page <= 1">&laquo;</button>
+      <button class="active">{{ page }} / {{ totalPages() }}</button>
+      <button (click)="goPage(page + 1)" [disabled]="page >= totalPages()">&raquo;</button>
+    </div>
+  }
+</div>
+
+@if (selected(); as s) {
+  <div class="card-c" style="margin-top: 1.25rem;">
+    <div class="card-c-header">รายละเอียดผลตรวจ {{ s.requestFormNo }}</div>
+    <div class="card-c-body">
+      <div class="row g-3">
+        <div class="col-md-4"><strong>ลูกค้า:</strong> {{ s.customerName }}</div>
+        <div class="col-md-4"><strong>รถ:</strong> {{ s.carBrand }} {{ s.carModel }} ({{ s.carYear }})</div>
+        <div class="col-md-4"><strong>ทะเบียน:</strong> {{ s.licensePlate }} ({{ s.licenseProvince }})</div>
+        <div class="col-md-4"><strong>วันที่ตรวจ:</strong> {{ s.inspectionDate | thaidate }}</div>
+        <div class="col-md-4"><strong>ผู้ตรวจ:</strong> {{ s.inspectorName }}</div>
+        <div class="col-md-4"><strong>Hub:</strong> {{ s.hubName }}</div>
+        <div class="col-md-4"><strong>ผ่าน:</strong> {{ s.passedItems ?? 0 }} รายการ</div>
+        <div class="col-md-4"><strong>ไม่ผ่าน:</strong> {{ s.failedItems ?? 0 }} รายการ</div>
+        <div class="col-md-4"><strong>ผล:</strong> <app-status-badge kind="result" [value]="s.inspectionResult" /></div>
+        @if (s.resultRemark) {
+          <div class="col-12"><strong>หมายเหตุ:</strong> {{ s.resultRemark }}</div>
+        }
+      </div>
+    </div>
+  </div>
+}
+
+@if (resultOpen()) {
+  <div class="modal-backdrop-c" (click)="closeResult()">
+    <div class="modal-card" (click)="$event.stopPropagation()">
+      <div class="modal-header-c">
+        <span>บันทึกผลตรวจ — {{ resultTarget()?.requestFormNo }}</span>
+        <button class="btn-secondary-c" (click)="closeResult()" style="padding:.2rem .5rem;">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <div class="modal-body-c">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label-c">ผู้ตรวจ *</label>
+            <select class="form-select-c" [(ngModel)]="formInspector">
+              <option value="">เลือกผู้ตรวจ</option>
+              @for (i of master()?.inspectors ?? []; track i.value) {
+                <option [value]="i.value">{{ i.label }}</option>
+              }
+            </select>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label-c">ผลตรวจ *</label>
+            <select class="form-select-c" [(ngModel)]="formResult">
+              <option [value]="InspectionResult.Passed">ผ่าน</option>
+              <option [value]="InspectionResult.Failed">ไม่ผ่าน</option>
+            </select>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label-c">จำนวนรายการที่ผ่าน</label>
+            <input type="number" min="0" class="form-control-c" [(ngModel)]="formPassed" />
+          </div>
+          <div class="col-md-6">
+            <label class="form-label-c">จำนวนรายการที่ไม่ผ่าน</label>
+            <input type="number" min="0" class="form-control-c" [(ngModel)]="formFailed" />
+          </div>
+          <div class="col-12">
+            <label class="form-label-c">หมายเหตุ</label>
+            <textarea class="form-control-c" rows="3" [(ngModel)]="formRemark"></textarea>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer-c">
+        <button class="btn-secondary-c" (click)="closeResult()">ยกเลิก</button>
+        <button class="btn-primary-c" (click)="confirmResult()">บันทึกผลตรวจ</button>
+      </div>
+    </div>
+  </div>
+}

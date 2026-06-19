@@ -1,0 +1,17 @@
+{
+  "name": "appleman-practice",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently -n be,fe -c yellow,cyan \"npm:start:be\" \"npm:start:fe\"",
+    "start:be": "npm --prefix backend start",
+    "start:fe": "npm --prefix frontend start",
+    "install:all": "npm install && npm --prefix backend install && npm --prefix frontend install",
+    "build:be": "npm --prefix backend run build",
+    "build:fe": "npm --prefix frontend run build",
+    "build": "npm run build:be && npm run build:fe"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.0"
+  }
+}

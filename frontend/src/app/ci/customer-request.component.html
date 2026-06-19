@@ -1,0 +1,129 @@
+<div class="customer-shell">
+  <div class="customer-hero">
+    <h1><i class="fa-solid fa-car-side"></i> ขอตรวจสภาพรถ</h1>
+    <p>กรอกข้อมูลรถและช่องทางติดต่อ — เจ้าหน้าที่จะติดต่อกลับเพื่อนัดหมายภายใน 1 วันทำการ</p>
+  </div>
+
+  @if (submitted(); as s) {
+    <div class="card-c">
+      <div class="card-c-body text-center py-5">
+        <i class="fa-solid fa-circle-check" style="font-size: 4rem; color: #16a34a;"></i>
+        <h3 class="mt-3 mb-2">ส่งคำขอสำเร็จ</h3>
+        <p class="mb-1">เลขที่คำขอของคุณคือ</p>
+        <div style="font-size: 1.3rem; font-weight: 700; color: #1d4ed8;">{{ s.requestFormNo }}</div>
+        <p class="mt-3 text-muted">กรุณาจดเลขที่คำขอไว้สำหรับใช้อ้างอิง<br>เจ้าหน้าที่จะติดต่อกลับเพื่อนัดหมายภายใน 1 วันทำการ</p>
+        <button class="btn-primary-c mt-3" (click)="reset()">ส่งคำขอใหม่</button>
+      </div>
+    </div>
+  } @else {
+    <form [formGroup]="form" (ngSubmit)="submit()" class="card-c">
+      <div class="card-c-body">
+        <h5 class="mb-3"><i class="fa-solid fa-user"></i> ข้อมูลผู้ขอ</h5>
+        <div class="row g-3 mb-4">
+          <div class="col-md-6">
+            <label class="form-label-c">ชื่อ-นามสกุล *</label>
+            <input class="form-control-c" formControlName="customerName" />
+            @if (form.controls.customerName.touched && form.controls.customerName.errors) {
+              <div class="form-error">กรุณากรอกชื่อ</div>
+            }
+          </div>
+          <div class="col-md-6">
+            <label class="form-label-c">เบอร์โทร *</label>
+            <input class="form-control-c" formControlName="customerMobile" placeholder="081-234-5678" />
+            @if (form.controls.customerMobile.touched && form.controls.customerMobile.errors) {
+              <div class="form-error">กรุณากรอกเบอร์โทรให้ถูกต้อง</div>
+            }
+          </div>
+          <div class="col-md-6">
+            <label class="form-label-c">อีเมล (ไม่บังคับ)</label>
+            <input class="form-control-c" formControlName="customerEmail" placeholder="you@example.com" />
+            @if (form.controls.customerEmail.touched && form.controls.customerEmail.errors) {
+              <div class="form-error">อีเมลไม่ถูกต้อง</div>
+            }
+          </div>
+          <div class="col-md-6">
+            <label class="form-label-c">จังหวัด *</label>
+            <select class="form-select-c" formControlName="addressProvince">
+              <option value="">เลือกจังหวัด</option>
+              @for (p of master()?.provinces ?? []; track p.value) {
+                <option [value]="p.value">{{ p.label }}</option>
+              }
+            </select>
+          </div>
+          <div class="col-md-12">
+            <label class="form-label-c">ดีลเลอร์ที่ติดต่อ *</label>
+            <select class="form-select-c" formControlName="dealerName">
+              <option value="">เลือกดีลเลอร์</option>
+              @for (d of master()?.dealers ?? []; track d.value) {
+                <option [value]="d.value">{{ d.label }}</option>
+              }
+            </select>
+          </div>
+        </div>
+
+        <h5 class="mb-3"><i class="fa-solid fa-car"></i> ข้อมูลรถ</h5>
+        <div class="row g-3 mb-4">
+          <div class="col-md-6">
+            <label class="form-label-c">ยี่ห้อ *</label>
+            <select class="form-select-c" formControlName="carBrand">
+              <option value="">เลือกยี่ห้อ</option>
+              @for (b of master()?.carBrands ?? []; track b.value) {
+                <option [value]="b.value">{{ b.label }}</option>
+              }
+            </select>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label-c">รุ่น *</label>
+            <input class="form-control-c" formControlName="carModel" />
+          </div>
+          <div class="col-md-4">
+            <label class="form-label-c">ปี *</label>
+            <input type="number" class="form-control-c" formControlName="carYear" />
+          </div>
+          <div class="col-md-4">
+            <label class="form-label-c">สี *</label>
+            <input class="form-control-c" formControlName="carColor" />
+          </div>
+          <div class="col-md-4">
+            <label class="form-label-c">เลขไมล์ *</label>
+            <input type="number" class="form-control-c" formControlName="mileage" />
+          </div>
+          <div class="col-md-6">
+            <label class="form-label-c">ทะเบียน *</label>
+            <input class="form-control-c" formControlName="licensePlate" placeholder="กก-1234" />
+          </div>
+          <div class="col-md-6">
+            <label class="form-label-c">จังหวัดทะเบียน *</label>
+            <select class="form-select-c" formControlName="licenseProvince">
+              <option value="">เลือกจังหวัด</option>
+              @for (p of master()?.provinces ?? []; track p.value) {
+                <option [value]="p.value">{{ p.label }}</option>
+              }
+            </select>
+          </div>
+          <div class="col-12">
+            <label class="form-label-c">หมายเหตุ</label>
+            <textarea class="form-control-c" rows="3" formControlName="remark"
+                      placeholder="ระบุข้อมูลเพิ่มเติม เช่น ช่วงเวลาที่สะดวก"></textarea>
+          </div>
+        </div>
+
+        <div class="d-flex justify-content-end gap-2">
+          <button type="button" class="btn-secondary-c" (click)="reset()">ล้างฟอร์ม</button>
+          <button type="submit" class="btn-primary-c" [disabled]="submitting()">
+            @if (submitting()) {
+              <i class="fa-solid fa-spinner fa-spin"></i>
+            } @else {
+              <i class="fa-solid fa-paper-plane"></i>
+            }
+            ส่งคำขอ
+          </button>
+        </div>
+      </div>
+    </form>
+  }
+
+  <div class="text-center mt-3">
+    <a routerLink="/backoffice/cidt01" class="text-muted small">เข้าสู่ระบบหลังบ้าน</a>
+  </div>
+</div>
