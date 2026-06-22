@@ -1,10 +1,10 @@
-# AppleMan Practice
+# Practice
 
-Demo version ของ **AppleMan Car Inspection Management System** สำหรับใส่ portfolio — เน้นแสดง flow การจัดการคำขอตรวจสภาพรถจากฝั่งหลังบ้าน (CIDT01/02/03) + หน้าบ้านลูกค้ายื่นคำขอ
+Demo version ของ **Car Inspection Management System** สำหรับใส่ portfolio — เน้นแสดง flow การจัดการคำขอตรวจสภาพรถจากฝั่งหลังบ้าน (CIDT01/02/03) + หน้าบ้านลูกค้ายื่นคำขอ
 
 Architecture เดียวกับเว็บลูกค้าจริง (Angular FE → Express BE) แต่ **ไม่มี DB** — ข้อมูลทั้งหมดเป็น mock array ใน memory ที่ฝั่ง BE (restart BE = reset)
 
-> โปรเจคจริงของลูกค้า (AAA-AppleMan-BackOffice / AAA-AppleMan-CiWeb / AAA-AppleMan-API) เป็น confidential เอามาแสดงไม่ได้ — โปรเจคนี้ port เฉพาะ scope CIDT01/02/03 พร้อม simplify field ลงเหลือเฉพาะที่จำเป็นต่อ demo
+> โปรเจคจริงของลูกค้าเป็น confidential เอามาแสดงไม่ได้ — โปรเจคนี้ port เฉพาะ scope CIDT01/02/03 พร้อม simplify field ลงเหลือเฉพาะที่จำเป็นต่อ demo
 
 ## Stack
 
@@ -16,7 +16,7 @@ Architecture เดียวกับเว็บลูกค้าจริง 
 ## โครงสร้าง
 
 ```
-AppleMan-Practice/
+Practice/
 ├── backend/                         (Express + TS, port 3000)
 │   ├── src/
 │   │   ├── index.ts                 (Express bootstrap + CORS + 404/error handler)

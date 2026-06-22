@@ -11,17 +11,17 @@ import { filter } from 'rxjs/operators';
       <aside class="app-sidebar">
         <div class="brand">
           <span class="logo-dot">A</span>
-          <span>AppleMan</span>
+          <span>Car Inspection</span>
         </div>
         <div class="nav-section">การตรวจสภาพรถ</div>
         <a routerLink="/backoffice/cidt01" routerLinkActive="active">
-          <i class="fa-solid fa-clipboard-list"></i> CIDT01 รอนัดหมาย
+          <i class="fa-solid fa-clipboard-list"></i>รอนัดหมาย
         </a>
         <a routerLink="/backoffice/cidt02" routerLinkActive="active">
-          <i class="fa-solid fa-calendar-day"></i> CIDT02 นัดหมาย
+          <i class="fa-solid fa-calendar-day"></i>นัดหมาย
         </a>
         <a routerLink="/backoffice/cidt03" routerLinkActive="active">
-          <i class="fa-solid fa-file-circle-check"></i> CIDT03 ผลตรวจ
+          <i class="fa-solid fa-file-circle-check"></i>ผลตรวจ
         </a>
         <div class="nav-section">ลูกค้า</div>
         <a routerLink="/request" target="_blank">
